@@ -1,21 +1,18 @@
-# Julius Vagter – PWA
+# Julius Vagter 2.1
 
-En simpel installérbar web-app til iPhone.
+Upload/erstat disse filer i roden af GitHub Pages-repositoriet:
 
-## Funktioner
-- Registrer dato, mødetid, sluttid og pause
-- Automatisk beregning af arbejdstid og forventet løn
-- Standardtimeløn: 80 kr. (kan ændres)
-- Lønperioder fra den 20. til den 19.
-- Historik pr. lønperiode
-- Rediger og slet vagter
-- Lokal lagring på enheden
-- Offline-understøttelse efter første besøg
+- index.html
+- manifest.webmanifest
+- sw.js
+- icon-192.png
+- icon-512.png
 
-## Udgivelse
-Upload hele mappen til en HTTPS-host, fx GitHub Pages, Cloudflare Pages eller Netlify. Service worker/PWA-installation kræver HTTPS (localhost er undtaget under udvikling).
-
-På iPhone: Åbn webadressen i Safari → Del → Føj til hjemmeskærm.
-
-## Vigtigt om data
-Data gemmes i browserens localStorage på den enkelte enhed. Rydning af Safari/webstedsdata kan slette vagterne. En senere version kan tilføje eksport/backup eller cloud-synkronisering.
+Version 2.1 indeholder:
+- Registrering, redigering og sletning af vagter
+- Live beregning før gem
+- Lønperioder 20.–19.
+- Redigerbar timeløn (80 kr. som standard)
+- Lokal lagring
+- JSON backup/restore
+- PWA manifest, app-ikon og offline-cache

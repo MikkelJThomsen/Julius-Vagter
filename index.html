@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07111f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Julius Vagter">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Julius Vagter</title>
+<style>
+:root{--bg:#06101e;--card:#0c1929;--card2:#102136;--text:#f7fbff;--muted:#91a3b8;--accent:#19d3a2;--line:#1d3046;--danger:#ff6b6b}
+*{box-sizing:border-box} body{margin:0;background:linear-gradient(180deg,#06101e,#081421);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+.app{max-width:520px;margin:auto;min-height:100vh;padding:calc(22px + env(safe-area-inset-top)) 18px calc(90px + env(safe-area-inset-bottom))}
+h1{font-size:28px;margin:0 0 5px}.sub{color:var(--muted);margin-bottom:22px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin:12px 0;box-shadow:0 10px 30px #0003}
+.period{font-weight:700;font-size:17px}.range,.muted{color:var(--muted);font-size:14px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}.stat{background:var(--card2);border-radius:14px;padding:12px 8px;text-align:center}.stat b{display:block;font-size:18px}.stat span{font-size:12px;color:var(--muted)}
+button,.btn{border:0;border-radius:14px;padding:14px 16px;font-size:16px;font-weight:700;cursor:pointer}.primary{background:var(--accent);color:#042017;width:100%;margin-top:12px}.secondary{background:var(--card2);color:var(--text);border:1px solid var(--line)}.danger{background:#32171d;color:#ffb3b3}
+label{display:block;color:var(--muted);font-size:13px;margin:14px 0 6px}input,select{width:100%;padding:13px;background:#081524;border:1px solid var(--line);border-radius:12px;color:var(--text);font-size:16px}
+.preview{margin-top:16px;padding:14px;border-radius:14px;background:#09241f;border:1px solid #145844}.preview strong{color:var(--accent);font-size:19px}
+.row{display:flex;gap:10px}.row>*{flex:1}.shift{display:flex;justify-content:space-between;gap:10px;align-items:center}.shift-main{flex:1}.shift-pay{font-weight:800;color:var(--accent);white-space:nowrap}.actions{display:flex;gap:8px;margin-top:12px}.actions button{padding:9px 12px;font-size:13px}
+nav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(520px,100%);display:grid;grid-template-columns:repeat(3,1fr);background:#081421f2;border-top:1px solid var(--line);padding:8px 8px calc(8px + env(safe-area-inset-bottom));backdrop-filter:blur(15px)}
+nav button{background:transparent;color:var(--muted);padding:10px 4px;font-size:13px}nav button.active{color:var(--accent)}
+.hidden{display:none!important}.topbar{display:flex;align-items:center;gap:10px;margin-bottom:12px}.back{background:transparent;color:var(--accent);padding:6px}.empty{text-align:center;color:var(--muted);padding:26px 5px}
+hr{border:0;border-top:1px solid var(--line);margin:18px 0}.small{font-size:12px;color:var(--muted);line-height:1.5}
+</style>
+</head>
+<body><main class="app">
+<section id="home">
+<h1>Julius Vagter</h1><div class="sub">Overblik over timer og løn</div>
+<div class="card"><div class="period">Denne lønperiode</div><div class="range" id="homeRange"></div>
+<div class="stats"><div class="stat"><b id="homeHours">0 t</b><span>Timer</span></div><div class="stat"><b id="homeCount">0</b><span>Vagter</span></div><div class="stat"><b id="homePay">0 kr.</b><span>Forventet løn</span></div></div></div>
+<button class="primary" id="newShift">＋ Registrer vagt</button>
+<div class="card"><b>Seneste vagter</b><div id="recent"></div></div>
+</section>
+
+<section id="form" class="hidden">
+<div class="topbar"><button class="back" id="cancel">‹ Tilbage</button><h1 id="formTitle">Registrer vagt</h1></div>
+<div class="card">
+<label>Dato</label><input type="date" id="date">
+<div class="row"><div><label>Mødt</label><input type="time" id="start"></div><div><label>Gået</label><input type="time" id="end"></div></div>
+<label>Pause i minutter</label><input type="number" id="break" min="0" step="1" value="0" inputmode="numeric">
+<div class="preview" id="preview">Indtast start- og sluttid for at se beregningen.</div>
+<button class="primary" id="save">Gem vagt</button>
+</div></section>
+
+<section id="shifts" class="hidden">
+<h1>Vagter</h1><div class="sub">Historik pr. lønperiode</div>
+<div class="card"><label style="margin-top:0">Lønperiode</label><select id="periodSelect"></select>
+<div class="stats"><div class="stat"><b id="pHours">0 t</b><span>Timer</span></div><div class="stat"><b id="pCount">0</b><span>Vagter</span></div><div class="stat"><b id="pPay">0 kr.</b><span>Forventet løn</span></div></div></div>
+<div id="shiftList"></div>
+</section>
+
+<section id="settings" class="hidden">
+<h1>Indstillinger</h1><div class="sub">Løn og sikkerhedskopi</div>
+<div class="card"><label style="margin-top:0">Timeløn (kr.)</label><input type="number" id="rate" min="0" step="0.5"><button class="primary" id="saveRate">Gem timeløn</button></div>
+<div class="card"><b>Backup</b><p class="muted">Eksportér vagter og indstillinger til en fil. Filen kan senere importeres på denne eller en ny telefon.</p>
+<button class="secondary" style="width:100%" id="exportBtn">Eksportér backup</button>
+<label class="btn secondary" style="display:block;text-align:center;margin-top:10px">Importér backup<input type="file" id="importFile" accept=".json,application/json" hidden></label>
+<p class="small">Vagterne gemmes lokalt på enheden. En backup er derfor en god idé med jævne mellemrum.</p></div>
+<div class="card"><b>Om appen</b><p class="muted">Julius Vagter · version 2.1</p></div>
+</section>
+</main>
+<nav id="nav"><button data-page="home" class="active">⌂<br>Overblik</button><button data-page="shifts">☷<br>Vagter</button><button data-page="settings">⚙︎<br>Indstillinger</button></nav>
+<script>
+const $=id=>document.getElementById(id);
+let shifts=JSON.parse(localStorage.getItem("jv_shifts")||"[]");
+let rate=Number(localStorage.getItem("jv_rate")||80);
+let editing=null;
+const dk=new Intl.DateTimeFormat("da-DK",{day:"numeric",month:"short",year:"numeric"});
+const money=n=>new Intl.NumberFormat("da-DK",{maximumFractionDigits:2}).format(n)+" kr.";
+function localISO(d=new Date()){let x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,10)}
+function parseDate(s){let [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)}
+function periodFor(dateStr){let d=parseDate(dateStr), y=d.getFullYear(),m=d.getMonth(); let start,end,labelDate;
+ if(d.getDate()>=20){start=new Date(y,m,20);end=new Date(y,m+1,19);labelDate=new Date(y,m+1,1)}
+ else{start=new Date(y,m-1,20);end=new Date(y,m,19);labelDate=new Date(y,m,1)}
+ return {key:localISO(start),start,end,label:labelDate.toLocaleDateString("da-DK",{month:"long",year:"numeric"})}}
+function mins(s){if(!s)return null;let [h,m]=s.split(":").map(Number);return h*60+m}
+function calc(x){let a=mins(x.start),b=mins(x.end);if(a===null||b===null)return 0;if(b<a)b+=1440;return Math.max(0,b-a-(Number(x.break)||0))}
+function fmtMin(m){let h=Math.floor(m/60),r=m%60;return r?`${h} t ${r} min`:`${h} t`}
+function summary(arr){let m=arr.reduce((a,x)=>a+calc(x),0);return {m,count:arr.length,pay:m/60*rate}}
+function saveData(){localStorage.setItem("jv_shifts",JSON.stringify(shifts))}
+function show(page){["home","form","shifts","settings"].forEach(x=>$(x).classList.toggle("hidden",x!==page));$("nav").classList.toggle("hidden",page==="form");document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));if(page==="home")renderHome();if(page==="shifts")renderPeriods();if(page==="settings")$("rate").value=rate;window.scrollTo(0,0)}
+function renderHome(){let p=periodFor(localISO()),arr=shifts.filter(x=>periodFor(x.date).key===p.key),s=summary(arr);$("homeRange").textContent=`${dk.format(p.start)} – ${dk.format(p.end)}`;$("homeHours").textContent=fmtMin(s.m);$("homeCount").textContent=s.count;$("homePay").textContent=money(s.pay);
+ let r=[...arr].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);$("recent").innerHTML=r.length?r.map(cardHTML).join(""):'<div class="empty">Ingen vagter endnu</div>'}
+function cardHTML(x){let m=calc(x);return `<div style="padding:14px 0;border-bottom:1px solid var(--line)"><div class="shift"><div class="shift-main"><b>${dk.format(parseDate(x.date))}</b><div class="muted">${x.start}–${x.end} · ${x.break||0} min pause · ${fmtMin(m)}</div></div><div class="shift-pay">${money(m/60*rate)}</div></div></div>`}
+function allPeriods(){let ps=new Map();shifts.forEach(x=>{let p=periodFor(x.date);ps.set(p.key,p)});let cur=periodFor(localISO());ps.set(cur.key,cur);return [...ps.values()].sort((a,b)=>b.key.localeCompare(a.key))}
+function renderPeriods(){let opts=allPeriods(),old=$("periodSelect").value;$("periodSelect").innerHTML=opts.map(p=>`<option value="${p.key}">${p.label} · ${dk.format(p.start)}–${dk.format(p.end)}</option>`).join("");if(opts.some(p=>p.key===old))$("periodSelect").value=old;renderShiftList()}
+function renderShiftList(){let key=$("periodSelect").value,arr=shifts.filter(x=>periodFor(x.date).key===key).sort((a,b)=>b.date.localeCompare(a.date)||b.start.localeCompare(a.start)),s=summary(arr);$("pHours").textContent=fmtMin(s.m);$("pCount").textContent=s.count;$("pPay").textContent=money(s.pay);
+ $("shiftList").innerHTML=arr.length?arr.map(x=>{let m=calc(x);return `<div class="card"><div class="shift"><div class="shift-main"><b>${dk.format(parseDate(x.date))}</b><div class="muted">${x.start}–${x.end} · ${x.break||0} min pause<br>${fmtMin(m)}</div></div><div class="shift-pay">${money(m/60*rate)}</div></div><div class="actions"><button class="secondary" data-edit="${x.id}">Rediger</button><button class="danger" data-delete="${x.id}">Slet</button></div></div>`}).join(""):'<div class="card empty">Ingen vagter i denne lønperiode</div>'}
+function openForm(id=null){editing=id;let x=id?shifts.find(s=>s.id===id):null;$("formTitle").textContent=x?"Rediger vagt":"Registrer vagt";$("date").value=x?.date||localISO();$("start").value=x?.start||"";$("end").value=x?.end||"";$("break").value=x?.break??0;updatePreview();show("form")}
+function updatePreview(){let x={start:$("start").value,end:$("end").value,break:$("break").value},m=calc(x);$("preview").innerHTML=x.start&&x.end?`${x.start}–${x.end} · ${x.break||0} min. pause<br><strong>${fmtMin(m)} · ${money(m/60*rate)}</strong>`:"Indtast start- og sluttid for at se beregningen."}
+$("newShift").addEventListener("click",()=>openForm());$("cancel").addEventListener("click",()=>show("home"));
+["start","end","break"].forEach(id=>$(id).addEventListener("input",updatePreview));
+$("save").addEventListener("click",()=>{let x={date:$("date").value,start:$("start").value,end:$("end").value,break:Number($("break").value)||0};if(!x.date||!x.start||!x.end){alert("Udfyld dato, mødetid og sluttid.");return}if(calc(x)<=0){alert("Kontrollér tider og pause.");return}if(editing){let i=shifts.findIndex(s=>s.id===editing);shifts[i]={...shifts[i],...x}}else shifts.push({id:crypto.randomUUID?crypto.randomUUID():Date.now().toString(),...x});saveData();show("home")});
+document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>show(b.dataset.page)));
+$("periodSelect").addEventListener("change",renderShiftList);
+$("shiftList").addEventListener("click",e=>{let ed=e.target.dataset.edit,del=e.target.dataset.delete;if(ed)openForm(ed);if(del&&confirm("Vil du slette vagten?")){shifts=shifts.filter(x=>x.id!==del);saveData();renderPeriods()}});
+$("saveRate").addEventListener("click",()=>{let v=Number($("rate").value);if(v<0||!Number.isFinite(v)){alert("Indtast en gyldig timeløn.");return}rate=v;localStorage.setItem("jv_rate",rate);alert("Timeløn gemt.");renderHome()});
+$("exportBtn").addEventListener("click",()=>{let data={app:"Julius Vagter",version:"2.1",exported:new Date().toISOString(),rate,shifts};let blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`julius-vagter-backup-${localISO()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});
+$("importFile").addEventListener("change",async e=>{let f=e.target.files[0];if(!f)return;try{let d=JSON.parse(await f.text());if(!Array.isArray(d.shifts))throw 0;if(!confirm(`Importér ${d.shifts.length} vagter? Den nuværende historik erstattes.`))return;shifts=d.shifts;rate=Number(d.rate)||80;saveData();localStorage.setItem("jv_rate",rate);alert("Backup importeret.");show("home")}catch{alert("Filen kunne ikke importeres.")}e.target.value=""});
+renderHome();
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+</script></body></html>
